@@ -1,0 +1,6 @@
+streamlit
+duckdb
+pandas
+polars
+pyyaml
+python-dotenv
