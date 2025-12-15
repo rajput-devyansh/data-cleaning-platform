@@ -48,14 +48,23 @@ if active:
 
         if nulls > 0:
             action = st.radio(
-                "Fix nulls",
-                ["Drop rows", "Fill with value"],
+                "Fix nulls (this creates a new dataset version)",
+                ["Drop rows", "Overwrite values (fill nulls)"],
             )
 
             if action == "Fill with value":
                 fill_val = st.text_input("Fill value")
 
-            if st.button("Apply Null Fix"):
+            st.warning(
+                "This operation overwrites values in the selected column. "
+                "The original values are preserved only via version history."
+            )
+
+            ack = st.checkbox(
+                "I understand this operation overwrites column values"
+            )
+
+            if st.button("Apply Null Fix") and ack:
                 if action == "Drop rows":
                     sql = drop_nulls_sql(
                         "{source_table}",
