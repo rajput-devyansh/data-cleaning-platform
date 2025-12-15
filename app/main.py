@@ -10,8 +10,10 @@ st.sidebar.title("Pipeline Steps")
 
 page = st.sidebar.radio(
     "Navigate",
-    ["Ingestion"],
+    ["Ingestion", "Schema"],
 )
 
 if page == "Ingestion":
-    import app.pages.ingestion  # noqa
+    import app.pages.ingestion
+elif page == "Schema":
+    import app.pages.schema
