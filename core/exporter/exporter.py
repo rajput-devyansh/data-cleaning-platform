@@ -1,6 +1,7 @@
 import json
 from core.db.duckdb_client import DuckDBClient
 from core.config import EXPORTS_DIR
+from core.db.sqlite_client import SQLiteClient
 
 def export_dataset(table_name: str, dataset_id: str):
     duck = DuckDBClient()
@@ -22,5 +23,11 @@ def export_dataset(table_name: str, dataset_id: str):
     }
 
     meta_path.write_text(json.dumps(meta, indent=2))
+    
+    db = SQLiteClient()
+    db.execute(
+        "UPDATE datasets SET status = ? WHERE dataset_id = ?",
+        ("exported", dataset_id),
+    )
 
     return data_path, meta_path

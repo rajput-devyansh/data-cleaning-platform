@@ -61,3 +61,14 @@ class VersionManager:
             """,
             (dataset_id,),
         )
+    
+    def get_dataset(self, dataset_id: str):
+        rows = self.db.fetchall(
+            """
+            SELECT dataset_id, name, status
+            FROM datasets
+            WHERE dataset_id = ?
+            """,
+            (dataset_id,),
+        )
+        return rows[0] if rows else None

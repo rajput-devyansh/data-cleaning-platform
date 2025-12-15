@@ -34,6 +34,11 @@ class PIIEngine:
 
         self.vm.create_version(dataset_id, target_version, target)
 
+        self.vm.db.execute(
+            "UPDATE datasets SET status = ? WHERE dataset_id = ?",
+            ("pii_checked", dataset_id),
+        )
+
         self.logger.log_action(
             dataset_id,
             step="PII",

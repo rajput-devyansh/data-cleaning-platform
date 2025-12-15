@@ -7,6 +7,20 @@ st.header("Export Data")
 dataset_id = st.text_input("Dataset ID")
 vm = VersionManager()
 
+if not dataset_id:
+    st.stop()
+
+dataset = vm.get_dataset(dataset_id)
+
+if not dataset:
+    st.error("Dataset not found.")
+    st.stop()
+
+# 🔒 GUARDRAIL
+if dataset["status"] != "pii_checked":
+    st.error("PII check must be completed before export.")
+    st.stop()
+
 active = vm.get_active_version(dataset_id)
 
 if active and st.button("Export"):

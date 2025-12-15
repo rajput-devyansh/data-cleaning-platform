@@ -33,6 +33,11 @@ class CleaningEngine:
             target_table,
         )
 
+        self.vm.db.execute(
+            "UPDATE datasets SET status = ? WHERE dataset_id = ?",
+            ("cleaned", dataset_id),
+        )
+
         self.logger.log_action(
             dataset_id,
             step="Cleaning",

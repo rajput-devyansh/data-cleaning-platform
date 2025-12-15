@@ -51,6 +51,10 @@ def apply_schema(
         """,
         (dataset_id, target_version, json.dumps(schema)),
     )
+    db.execute(
+        "UPDATE datasets SET status = ? WHERE dataset_id = ?",
+        ("schema_locked", dataset_id),
+    )
 
     return {
         "clean_table": target_table,

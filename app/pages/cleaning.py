@@ -18,6 +18,21 @@ vm = VersionManager()
 engine = CleaningEngine()
 
 dataset_id = st.text_input("Dataset ID")
+
+if not dataset_id:
+    st.stop()
+
+dataset = vm.get_dataset(dataset_id)
+
+if not dataset:
+    st.error("Dataset not found.")
+    st.stop()
+
+# 🔒 GUARDRAIL (THIS IS STEP 5)
+if dataset["status"] != "schema_locked":
+    st.error("Schema must be locked before cleaning.")
+    st.stop()
+
 active = vm.get_active_version(dataset_id)
 
 if active:

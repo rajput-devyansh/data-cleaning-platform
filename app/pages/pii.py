@@ -10,6 +10,21 @@ vm = VersionManager()
 engine = PIIEngine()
 
 dataset_id = st.text_input("Dataset ID")
+
+if not dataset_id:
+    st.stop()
+
+dataset = vm.get_dataset(dataset_id)
+
+if not dataset:
+    st.error("Dataset not found.")
+    st.stop()
+
+# 🔒 GUARDRAIL
+if dataset["status"] not in ("cleaned", "schema_locked"):
+    st.error("Dataset must be cleaned before PII checks.")
+    st.stop()
+
 active = vm.get_active_version(dataset_id)
 
 if active:
