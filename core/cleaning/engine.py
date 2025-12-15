@@ -2,6 +2,7 @@ from core.db.duckdb_client import DuckDBClient
 from core.versioning.naming import dataset_table_name
 from core.versioning.version_manager import VersionManager
 from core.audit.action_logger import ActionLogger
+from core.utils.impact import count_rows
 
 class CleaningEngine:
     def __init__(self):
@@ -21,10 +22,12 @@ class CleaningEngine:
         target_table = dataset_table_name(dataset_id, target_version)
 
         duck = DuckDBClient()
+        rows_before = count_rows(source_table)
         duck.execute(rule_sql.format(
             source_table=source_table,
             target_table=target_table,
         ))
+        rows_after = count_rows(target_table)
         duck.close()
 
         self.vm.create_version(
@@ -42,7 +45,12 @@ class CleaningEngine:
             dataset_id,
             step="Cleaning",
             operation=operation,
-            parameters=parameters,
+            parameters={
+                **parameters,
+                "rows_before": rows_before,
+                "rows_after": rows_after,
+                "rows_changed": rows_before - rows_after,
+            },
         )
 
         return target_version

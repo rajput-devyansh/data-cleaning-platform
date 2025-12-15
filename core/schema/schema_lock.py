@@ -1,7 +1,9 @@
 import json
 from core.db.duckdb_client import DuckDBClient
 from core.db.sqlite_client import SQLiteClient
+from core.audit.action_logger import ActionLogger
 from core.versioning.naming import dataset_table_name
+from core.utils.impact import count_rows
 
 def apply_schema(
     dataset_id: str,
@@ -41,6 +43,10 @@ def apply_schema(
 
     duck.close()
 
+    rows_before = count_rows(source_table)
+    rows_after = count_rows(target_table)
+    rows_quarantined = count_rows(quarantine_table)
+
     # 3️⃣ Store schema & lock
     db = SQLiteClient()
     db.execute(
@@ -54,6 +60,18 @@ def apply_schema(
     db.execute(
         "UPDATE datasets SET status = ? WHERE dataset_id = ?",
         ("schema_locked", dataset_id),
+    )
+
+    ActionLogger.log_action(
+        dataset_id,
+        step="Schema",
+        operation="schema_lock",
+        parameters={
+            "schema": schema,
+            "rows_before": rows_before,
+            "rows_after": rows_after,
+            "rows_quarantined": rows_quarantined,
+        },
     )
 
     return {

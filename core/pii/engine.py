@@ -2,6 +2,7 @@ from core.db.duckdb_client import DuckDBClient
 from core.versioning.naming import dataset_table_name
 from core.versioning.version_manager import VersionManager
 from core.audit.action_logger import ActionLogger
+from core.utils.impact import count_rows
 
 class PIIEngine:
     def __init__(self):
@@ -23,6 +24,7 @@ class PIIEngine:
             select_expr.append(f"{expr} AS \"{col}\"")
 
         duck = DuckDBClient()
+        rows_before = count_rows(source)
         duck.execute(f"""
             CREATE TABLE {target} AS
             SELECT
@@ -30,6 +32,7 @@ class PIIEngine:
                 {', '.join(select_expr)}
             FROM {source}
         """)
+        rows_after = count_rows(target)
         duck.close()
 
         self.vm.create_version(dataset_id, target_version, target)
@@ -43,7 +46,12 @@ class PIIEngine:
             dataset_id,
             step="PII",
             operation="masking",
-            parameters=masking_rules,
+            parameters={
+                "masked_columns": list(masking_rules.keys()),
+                "rows_before": rows_before,
+                "rows_after": rows_after,
+                "rows_changed": 0,
+            },
         )
 
         return target_version
