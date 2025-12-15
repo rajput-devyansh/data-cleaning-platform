@@ -15,13 +15,15 @@ def load_csv_to_duckdb(
     duck = DuckDBClient()
 
     duck.execute(f"""
-        CREATE TABLE {table_name} AS
-        SELECT *
-        FROM read_csv_auto(
-            '{file_path.as_posix()}',
-            delim='{delimiter}',
-            header={str(has_header).lower()},
-            encoding='{encoding}'
+    CREATE TABLE {table_name} AS
+    SELECT
+        ROW_NUMBER() OVER () AS _row_id,
+        *
+    FROM read_csv_auto(
+        '{file_path.as_posix()}',
+        delim='{delimiter}',
+        header={str(has_header).lower()},
+        encoding='{encoding}'
         )
     """)
 
