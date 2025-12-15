@@ -4,3 +4,4 @@ pandas
 polars
 pyyaml
 python-dotenv
+chardet
