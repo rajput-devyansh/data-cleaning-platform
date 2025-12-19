@@ -21,3 +21,5 @@ elif page == "Cleaning":
     import app.pages.cleaning
 elif page == "Diff Explorer":
     import app.pages.diff
+elif page == "Impact Dashboard":
+    import app.pages.impact

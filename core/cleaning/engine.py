@@ -55,6 +55,8 @@ class CleaningEngine:
 
         log_params = {
             **parameters,
+            "version_before": source_version,
+            "version_after": target_version,
             "rows_before": rows_before,
             "rows_after": rows_after,
             "rows_changed": rows_before - rows_after,

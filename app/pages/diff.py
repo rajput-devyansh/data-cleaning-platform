@@ -5,7 +5,10 @@ from core.diff.engine import diff_datasets
 st.header("🔍 Dataset Diff Explorer")
 
 vm = VersionManager()
-dataset_id = st.text_input("Dataset ID")
+dataset_id = st.text_input(
+    "Dataset ID",
+    value=st.session_state.get("diff_dataset_id", ""),
+)
 
 if not dataset_id:
     st.stop()
@@ -17,14 +20,32 @@ if not versions:
 
 version_numbers = [v["version"] for v in versions]
 
-v_from = st.selectbox("Compare FROM version", version_numbers)
-v_to = st.selectbox("Compare TO version", version_numbers)
+default_from = (
+    version_numbers.index(st.session_state["diff_v_from"])
+    if "diff_v_from" in st.session_state and st.session_state["diff_v_from"] in version_numbers
+    else 0
+)
 
-if v_from == v_to:
+default_to = (
+    version_numbers.index(st.session_state["diff_v_to"])
+    if "diff_v_to" in st.session_state and st.session_state["diff_v_to"] in version_numbers
+    else 1
+)
+
+v_from = st.selectbox("Compare FROM version", version_numbers, index=default_from)
+v_to = st.selectbox("Compare TO version", version_numbers, index=default_to)
+
+auto_run = (
+    "diff_v_from" in st.session_state and
+    "diff_v_to" in st.session_state and
+    "diff_dataset_id" in st.session_state
+)
+
+if v_from == v_to and not auto_run:
     st.warning("Select two different versions.")
     st.stop()
 
-if st.button("Run Diff"):
+if st.button("Run Diff") or auto_run:
     table_a = f"{dataset_id}_v{v_from}"
     table_b = f"{dataset_id}_v{v_to}"
 
@@ -45,10 +66,20 @@ if st.button("Run Diff"):
         with st.expander(f"Row {row.row_id}"):
             st.json(row.changes)
 
+    st.session_state.pop("diff_v_from", None)
+    st.session_state.pop("diff_v_to", None)
+    st.session_state.pop("diff_dataset_id", None)
+
 from core.diff.export import diff_to_json, diff_to_csv
 
 if "diff_result" in st.session_state:
-    diff = st.session_state["diff_result"]
+    st.session_state["diff_result"] = diff
+    st.session_state["diff_meta"] = {
+        "dataset_id": dataset_id,
+        "v_from": v_from,
+        "v_to": v_to,
+    }
+    meta = st.session_state["diff_meta"]
 
     st.subheader("Export Diff")
 
@@ -59,7 +90,7 @@ if "diff_result" in st.session_state:
         st.download_button(
             label="⬇️ Download Diff (JSON)",
             data=json_data,
-            file_name=f"{dataset_id}_diff_v{v_from}_to_v{v_to}.json",
+            file_name=f"{meta['dataset_id']}_diff_v{meta['v_from']}_to_v{meta['v_to']}.json",
             mime="application/json",
         )
 
@@ -68,6 +99,6 @@ if "diff_result" in st.session_state:
         st.download_button(
             label="⬇️ Download Modified Rows (CSV)",
             data=csv_data,
-            file_name=f"{dataset_id}_diff_v{v_from}_to_v{v_to}.csv",
+            file_name=f"{meta['dataset_id']}_diff_v{meta['v_from']}_to_v{meta['v_to']}.csv",
             mime="text/csv",
         )
