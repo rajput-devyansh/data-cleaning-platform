@@ -19,3 +19,5 @@ elif page == "Schema":
     import app.pages.schema
 elif page == "Cleaning":
     import app.pages.cleaning
+elif page == "Diff Explorer":
+    import app.pages.diff
